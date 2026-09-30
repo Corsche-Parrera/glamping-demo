@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="images/hero-autumn.jpg">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body data-sky="night" data-season="autumn">
 
@@ -26,6 +26,8 @@
     <div class="sky__layer sky__layer--dawn"></div>
     <div class="sky__layer sky__layer--day"></div>
     <div class="sky__layer sky__layer--dusk"></div>
+    <div class="sky__orb sky__orb--a"></div>
+    <div class="sky__orb sky__orb--b"></div>
     <canvas class="sky__stars" id="stars"></canvas>
     <div class="sky__grain"></div>
   </div>
@@ -425,6 +427,14 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="script.js?v=2"></script>
+  <button type="button" class="to-top" id="toTop" aria-label="Наверх">
+    <svg class="to-top__ring" viewBox="0 0 52 52" aria-hidden="true">
+      <circle class="to-top__track" cx="26" cy="26" r="24" />
+      <circle class="to-top__progress" id="toTopRing" cx="26" cy="26" r="24" pathLength="100" />
+    </svg>
+    <svg class="to-top__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" /></svg>
+  </button>
+
+  <script src="script.js?v=4"></script>
 </body>
 </html>

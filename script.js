@@ -214,15 +214,122 @@ $$("a", nav).forEach((a) => a.addEventListener("click", () => setMenu(false)));
 
 const skySections = $$("[data-sky]").filter((el) => el !== document.body);
 const navLinks = $$("a", nav);
-const skyObserver = new IntersectionObserver((entries) => {
+const navObserver = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (!entry.isIntersecting) return;
-    document.body.dataset.sky = entry.target.dataset.sky;
     const id = entry.target.id;
     navLinks.forEach((a) => a.classList.toggle("is-current", a.getAttribute("href") === `#${id}`));
   });
 }, { rootMargin: "-50% 0px -50% 0px" });
-skySections.forEach((s) => skyObserver.observe(s));
+skySections.forEach((s) => navObserver.observe(s));
+
+// Цвета неба смешиваются по мере прокрутки: у каждой границы секций есть зона перехода высотой больше экрана
+const SKY_ORDER = ["night", "dawn", "day", "dusk"];
+const SKY_LOOK = {
+  night: { stars: 1, a: [64, 140, 160, 0.3], b: [166, 242, 201, 0.1] },
+  dawn: { stars: 0, a: [255, 186, 168, 0.5], b: [196, 186, 240, 0.42] },
+  day: { stars: 0, a: [255, 255, 255, 0.65], b: [168, 214, 226, 0.4] },
+  dusk: { stars: 0.45, a: [233, 138, 104, 0.34], b: [128, 92, 176, 0.34] },
+};
+const skyEl = $(".sky");
+const skyLayers = SKY_ORDER.map((s) => $(`.sky__layer--${s}`));
+const skyOrbs = $$(".sky__orb");
+let skyBounds = [];
+let skySmoothY = window.scrollY;
+let skyLastY = -1;
+let starsAlpha = 1;
+
+function measureSky() {
+  const y = window.scrollY;
+  skyBounds = skySections.map((s) => ({ top: s.getBoundingClientRect().top + y, sky: s.dataset.sky }));
+  skyLastY = -1;
+}
+
+const smoothstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+
+function updateSky() {
+  const target = window.scrollY;
+  skySmoothY = reduceMotion ? target : lerp(skySmoothY, target, 0.12);
+  if (Math.abs(skySmoothY - target) < 0.3) skySmoothY = target;
+  if (skySmoothY === skyLastY || !skyBounds.length) return;
+  skyLastY = skySmoothY;
+
+  const vh = window.innerHeight;
+  const center = skySmoothY + vh / 2;
+  const zone = vh * 1.2;
+  const w = { night: 0, dawn: 0, day: 0, dusk: 0 };
+  w[skyBounds[0].sky] = 1;
+  for (let i = 1; i < skyBounds.length; i++) {
+    const t = smoothstep(-zone / 2, zone / 2, center - skyBounds[i].top);
+    if (!t) break;
+    w[skyBounds[i - 1].sky] -= t;
+    w[skyBounds[i].sky] += t;
+  }
+
+  let acc = 0;
+  SKY_ORDER.forEach((s, i) => {
+    const wi = Math.max(0, w[s]);
+    acc += wi;
+    skyLayers[i].style.opacity = acc > 0 ? (wi / acc).toFixed(4) : "0";
+  });
+
+  const mix = (key) => {
+    const c = [0, 0, 0, 0];
+    SKY_ORDER.forEach((s) => SKY_LOOK[s][key].forEach((v, j) => { c[j] += v * Math.max(0, w[s]); }));
+    return `rgba(${c[0] | 0}, ${c[1] | 0}, ${c[2] | 0}, ${c[3].toFixed(3)})`;
+  };
+  skyEl.style.setProperty("--orb-a", mix("a"));
+  skyEl.style.setProperty("--orb-b", mix("b"));
+  starsAlpha = SKY_ORDER.reduce((sum, s) => sum + SKY_LOOK[s].stars * Math.max(0, w[s]), 0);
+  starsCanvas.style.opacity = starsAlpha.toFixed(3);
+
+  const dominant = SKY_ORDER.reduce((best, s) => (w[s] > w[best] ? s : best), "night");
+  if (document.body.dataset.sky !== dominant) document.body.dataset.sky = dominant;
+
+  if (reduceMotion) return;
+  const docH = document.documentElement.scrollHeight - vh || 1;
+  const p = skySmoothY / docH;
+  skyLayers.forEach((l) => { l.style.transform = `translate3d(0, ${(0.5 - p) * 20}vh, 0)`; });
+  const k = skySmoothY / vh;
+  skyOrbs[0].style.transform = `translate3d(${Math.sin(k * 0.55) * 30}vw, ${Math.cos(k * 0.4) * 32 - 12}vh, 0)`;
+  skyOrbs[1].style.transform = `translate3d(${Math.cos(k * 0.45 + 2) * 34}vw, ${Math.sin(k * 0.6 + 1) * 30 + 14}vh, 0)`;
+}
+
+new ResizeObserver(measureSky).observe(document.body);
+window.addEventListener("load", measureSky);
+
+/* ================= Кнопка «Наверх» ================= */
+
+const toTop = $("#toTop");
+const toTopRing = $("#toTopRing");
+let toTopRaf = 0;
+
+function updateToTop() {
+  const y = window.scrollY, vh = window.innerHeight;
+  const max = document.documentElement.scrollHeight - vh || 1;
+  toTop.classList.toggle("is-shown", y > vh * 0.9);
+  toTopRing.style.strokeDashoffset = String(100 - clamp(y / max, 0, 1) * 100);
+}
+
+function stopToTop() { cancelAnimationFrame(toTopRaf); toTopRaf = 0; document.documentElement.style.scrollBehavior = ""; }
+
+toTop.addEventListener("click", () => {
+  const from = window.scrollY;
+  if (reduceMotion || from < 2) { window.scrollTo(0, 0); return; }
+  stopToTop();
+  document.documentElement.style.scrollBehavior = "auto";
+  const duration = clamp(700 + from / 10, 900, 1800);
+  const start = performance.now();
+  const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const step = (now) => {
+    const k = Math.min(1, (now - start) / duration);
+    window.scrollTo(0, from * (1 - ease(k)));
+    if (k < 1) toTopRaf = requestAnimationFrame(step);
+    else { stopToTop(); $(".logo").focus({ preventScroll: true }); }
+  };
+  toTopRaf = requestAnimationFrame(step);
+});
+["wheel", "touchstart", "keydown"].forEach((ev) => window.addEventListener(ev, () => { if (toTopRaf) stopToTop(); }, { passive: true }));
 
 /* ================= Звёзды ================= */
 
@@ -248,8 +355,7 @@ function sizeStars() {
 }
 
 function drawStars(t) {
-  const sky = document.body.dataset.sky;
-  if (sky !== "night" && sky !== "dusk") return;
+  if (starsAlpha < 0.01) return;
   const w = window.innerWidth, h = window.innerHeight;
   sctx.clearRect(0, 0, w, h);
   const sy = window.scrollY;
@@ -482,6 +588,7 @@ function updateParallax() {
 /* ================= Главный цикл ================= */
 
 function loop(t) {
+  updateSky();
   updateParallax();
   drawStars(t);
   drawParticles(t);
@@ -492,12 +599,13 @@ window.addEventListener("scroll", () => {
   onHeaderScroll();
   updateStatement();
   updateRoad();
+  updateToTop();
 }, { passive: true });
 
 let resizeTimer;
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { sizeStars(); sizeParticles(); setParticles(particleType); renderCalendar(); }, 150);
+  resizeTimer = setTimeout(() => { sizeStars(); sizeParticles(); setParticles(particleType); renderCalendar(); measureSky(); }, 150);
 });
 
 /* ================= Солнце над Маной ================= */
@@ -1142,4 +1250,6 @@ initRoad();
 updateReelBar();
 onHeaderScroll();
 updateStatement();
+measureSky();
+updateToTop();
 requestAnimationFrame(loop);
