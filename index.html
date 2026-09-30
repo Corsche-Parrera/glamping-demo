@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Изгиб — глэмпинг на реке Мана под Красноярском</title>
+  <meta name="description" content="Купола и A-фреймы на высоком берегу реки Мана, 42 км от Красноярска. Баня у воды, сибирский чан, SUP-прогулки. Круглый год.">
+  <meta name="theme-color" content="#060d13">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="images/hero-autumn.jpg">
+  <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body data-sky="night" data-season="autumn">
+
+  <div class="curtain" id="curtain" aria-hidden="true">
+    <svg class="curtain__mark" viewBox="0 0 120 60">
+      <path d="M4 50 C 30 50, 34 10, 60 10 S 90 50, 116 50" />
+    </svg>
+    <span class="curtain__word">ИЗГИБ</span>
+  </div>
+
+  <div class="sky" aria-hidden="true">
+    <div class="sky__layer sky__layer--night"></div>
+    <div class="sky__layer sky__layer--dawn"></div>
+    <div class="sky__layer sky__layer--day"></div>
+    <div class="sky__layer sky__layer--dusk"></div>
+    <canvas class="sky__stars" id="stars"></canvas>
+    <div class="sky__grain"></div>
+  </div>
+
+  <header class="header" id="header">
+    <div class="wrap header__inner">
+      <a href="#top" class="logo" aria-label="Изгиб — на главную">
+        <svg class="logo__mark" viewBox="0 0 120 60" aria-hidden="true">
+          <path d="M4 50 C 30 50, 34 10, 60 10 S 90 50, 116 50" />
+        </svg>
+        <span class="logo__word">ИЗГИБ</span>
+      </a>
+      <nav class="nav" id="nav" aria-label="Разделы">
+        <a href="#houses">Домики</a>
+        <a href="#services">Баня и чан</a>
+        <a href="#booking">Бронь</a>
+        <a href="#route">Как добраться</a>
+        <a href="#reviews">Отзывы</a>
+        <a href="#faq">Вопросы</a>
+        <a href="#contacts">Контакты</a>
+      </nav>
+      <a href="#booking" class="btn btn--aurora btn--sm header__cta">Забронировать</a>
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false"><span></span><span></span></button>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="hero" data-sky="night">
+      <div class="hero__media" id="heroMedia">
+        <img class="hero__img is-active" data-season="autumn" src="images/hero-autumn.jpg" alt="Купола и A-фреймы среди золотых лиственниц над рекой Мана">
+        <img class="hero__img" data-season="winter" src="images/hero-winter.jpg" alt="Заснеженные купола под Млечным путём на берегу замёрзшей Маны" loading="lazy">
+        <img class="hero__img" data-season="spring" src="images/hero-spring.jpg" alt="Домики среди цветущей черёмухи и утреннего тумана над рекой" loading="lazy">
+        <img class="hero__img" data-season="summer" src="images/hero-summer.jpg" alt="Светящиеся купола и A-фреймы летней ночью над рекой" loading="lazy">
+      </div>
+      <div class="hero__mist hero__mist--1" data-parallax="0.12"></div>
+      <div class="hero__mist hero__mist--2" data-parallax="0.22"></div>
+      <canvas class="hero__particles" id="particles" aria-hidden="true"></canvas>
+      <div class="hero__shade"></div>
+
+      <div class="wrap hero__content" id="heroContent">
+        <p class="hero__place reveal-hero">Река Мана · 42&nbsp;км от Красноярска</p>
+        <h1 class="hero__title">
+          <span class="hero__line"><span>Там, где река</span></span>
+          <span class="hero__line"><span>делает изгиб</span></span>
+        </h1>
+        <p class="hero__lead reveal-hero">Шесть куполов и A-фреймов на высоком берегу. Звёзды над кроватью, баня у&nbsp;воды и туман по утрам — в любое время года.</p>
+
+        <div class="seasons reveal-hero" role="tablist" aria-label="Время года">
+          <button class="season" role="tab" data-season="summer" aria-selected="false">
+            <span class="season__name">Лето</span>
+            <span class="season__note">светлячки и SUP</span>
+          </button>
+          <button class="season is-active" role="tab" data-season="autumn" aria-selected="true">
+            <span class="season__name">Осень</span>
+            <span class="season__note">золото лиственниц</span>
+          </button>
+          <button class="season" role="tab" data-season="winter" aria-selected="false">
+            <span class="season__name">Зима</span>
+            <span class="season__note">Млечный путь и чан</span>
+          </button>
+          <button class="season" role="tab" data-season="spring" aria-selected="false">
+            <span class="season__name">Весна</span>
+            <span class="season__note">черёмуха и ледоход</span>
+          </button>
+        </div>
+      </div>
+
+      <form class="quick wrap reveal-hero" id="quickForm" aria-label="Быстрый поиск">
+        <label class="quick__field">
+          <span>Заезд</span>
+          <input type="date" name="in" id="quickIn" required>
+        </label>
+        <label class="quick__field">
+          <span>Выезд</span>
+          <input type="date" name="out" id="quickOut" required>
+        </label>
+        <label class="quick__field">
+          <span>Гостей</span>
+          <select name="guests" id="quickGuests">
+            <option value="1">1 гость</option>
+            <option value="2" selected>2 гостя</option>
+            <option value="3">3 гостя</option>
+            <option value="4">4 гостя</option>
+            <option value="5">5 гостей</option>
+            <option value="6">6 гостей</option>
+            <option value="7">7 гостей</option>
+            <option value="8">8 гостей</option>
+          </select>
+        </label>
+        <button type="submit" class="btn btn--aurora">Подобрать домик</button>
+        <p class="quick__now" id="nowLine">Сейчас на Мане —</p>
+      </form>
+
+      <a href="#intro" class="hero__scroll" aria-label="Листать вниз"><span></span></a>
+    </section>
+
+    <!-- ============ INTRO ============ -->
+    <section class="intro section" id="intro" data-sky="dawn">
+      <div class="wrap">
+        <p class="kicker reveal">Место</p>
+        <p class="intro__statement" id="statement">Здесь нет соседей за стеной. Только река, которая огибает скалу, тайга до&nbsp;горизонта и шесть домиков, спрятанных между соснами на&nbsp;расстоянии шестидесяти метров друг от друга.</p>
+
+        <div class="facts">
+          <div class="fact reveal"><strong data-count="6">0</strong><span>домиков на 4&nbsp;гектарах</span></div>
+          <div class="fact reveal"><strong data-count="20" data-suffix="&nbsp;м">0</strong><span>от ближайшего крыльца до воды</span></div>
+          <div class="fact reveal"><strong data-count="365">0</strong><span>дней в году открыты</span></div>
+          <div class="fact reveal"><strong data-count="15" data-suffix="&nbsp;км">0</strong><span>без фонарей вокруг — ночью видно Млечный путь</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HOUSES ============ -->
+    <section class="houses section" id="houses" data-sky="day">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="kicker reveal">Домики</p>
+            <h2 class="section__title reveal">Купола и A-фреймы</h2>
+          </div>
+          <div class="filters reveal" id="filters" role="tablist" aria-label="Тип домика">
+            <button class="filter is-active" data-filter="all" role="tab" aria-selected="true">Все <sup>6</sup></button>
+            <button class="filter" data-filter="dome" role="tab" aria-selected="false">Купола <sup>3</sup></button>
+            <button class="filter" data-filter="aframe" role="tab" aria-selected="false">A-фреймы <sup>3</sup></button>
+          </div>
+        </div>
+        <p class="section__lead reveal"><span class="only-hover">Наведите на карточку, чтобы заглянуть внутрь. Нажмите, чтобы посмотреть подробности и цены по сезонам.</span><span class="only-touch">Коснитесь карточки, чтобы заглянуть внутрь, посмотреть подробности и цены по сезонам.</span></p>
+        <div class="houses__grid" id="housesGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============ SERVICES ============ -->
+    <section class="services section" id="services" data-sky="dusk">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="kicker reveal">К проживанию</p>
+            <h2 class="section__title reveal">Пар, огонь и тихая вода</h2>
+          </div>
+          <p class="section__lead section__lead--side reveal">Всё топим дровами и готовим к вашему времени. Добавьте услугу сразу в бронь — стоимость пересчитается.</p>
+        </div>
+
+        <div class="rituals" id="rituals"></div>
+
+        <div class="extras-list reveal" id="extrasList"></div>
+      </div>
+    </section>
+
+    <!-- ============ BOOKING ============ -->
+    <section class="booking section" id="booking" data-sky="night">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="kicker reveal">Бронирование</p>
+            <h2 class="section__title reveal">Выберите ночи на&nbsp;берегу</h2>
+          </div>
+          <p class="section__lead section__lead--side reveal">Отметьте даты заезда и выезда. Цена зависит от сезона и дня недели, итог считается сразу.</p>
+        </div>
+
+        <div class="booker reveal" id="booker">
+          <div class="booker__left">
+            <div class="booker__houses" id="bookHouses" role="radiogroup" aria-label="Домик"></div>
+
+            <div class="cal" id="calendar">
+              <div class="cal__nav">
+                <button type="button" class="cal__arrow" id="calPrev" aria-label="Предыдущий месяц">
+                  <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+                </button>
+                <button type="button" class="cal__arrow" id="calNext" aria-label="Следующий месяц">
+                  <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+                </button>
+              </div>
+              <div class="cal__months" id="calMonths"></div>
+              <div class="cal__legend">
+                <span><i class="dot dot--free"></i>свободно</span>
+                <span><i class="dot dot--busy"></i>занято</span>
+                <span><i class="dot dot--peak"></i>выходные и праздники дороже</span>
+              </div>
+            </div>
+          </div>
+
+          <aside class="booker__right">
+            <div class="summary" id="summary">
+              <div class="summary__house" id="sumHouse"></div>
+              <div class="summary__dates">
+                <div><span>Заезд</span><strong id="sumIn">—</strong><em>с 15:00</em></div>
+                <svg viewBox="0 0 40 12" aria-hidden="true"><path d="M1 6h36m-5-5 5 5-5 5"/></svg>
+                <div><span>Выезд</span><strong id="sumOut">—</strong><em>до 12:00</em></div>
+              </div>
+
+              <div class="stepper">
+                <span>Гостей</span>
+                <div class="stepper__ctrl">
+                  <button type="button" id="guestsMinus" aria-label="Меньше гостей">−</button>
+                  <output id="guestsOut">2</output>
+                  <button type="button" id="guestsPlus" aria-label="Больше гостей">+</button>
+                </div>
+              </div>
+              <p class="summary__hint" id="guestsHint"></p>
+
+              <div class="summary__extras" id="sumExtras"></div>
+
+              <dl class="bill" id="bill"></dl>
+
+              <div class="summary__total">
+                <span>Итого</span>
+                <strong id="sumTotal">0 ₽</strong>
+              </div>
+              <p class="summary__prepay" id="sumPrepay"></p>
+
+              <form class="summary__form" id="bookForm" novalidate>
+                <input type="text" name="name" placeholder="Ваше имя" autocomplete="name" required>
+                <input type="tel" name="phone" placeholder="+7 (___) ___-__-__" autocomplete="tel" required>
+                <button type="submit" class="btn btn--aurora btn--block" id="bookSubmit">Выберите даты</button>
+                <p class="summary__note">Это демо: заявка никуда не отправится, но всё посчитается как по-настоящему.</p>
+              </form>
+            </div>
+
+            <div class="success" id="success" hidden>
+              <svg class="success__mark" viewBox="0 0 120 60" aria-hidden="true"><path d="M4 50 C 30 50, 34 10, 60 10 S 90 50, 116 50" /></svg>
+              <h3>Ночи на берегу — ваши</h3>
+              <p id="successText"></p>
+              <button type="button" class="btn btn--ghost" id="successReset">Новая бронь</button>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ROUTE ============ -->
+    <section class="route section" id="route" data-sky="dawn">
+      <div class="route__photo" aria-hidden="true">
+        <img src="images/route-aerial.jpg" alt="" loading="lazy" data-parallax-img>
+      </div>
+      <div class="wrap route__inner">
+        <div class="route__text">
+          <p class="kicker reveal">Как добраться</p>
+          <h2 class="section__title reveal">Пятьдесят минут от&nbsp;города, и&nbsp;связь только с&nbsp;рекой</h2>
+
+          <div class="ways" id="ways">
+            <button class="way is-active" data-way="car">На машине</button>
+            <button class="way" data-way="transfer">Трансфер</button>
+            <button class="way" data-way="water">По воде</button>
+          </div>
+
+          <div class="way-panel is-active" data-panel="car">
+            <ol class="steps">
+              <li><b>Красноярск</b><span>Выезжайте по Дивногорскому шоссе в сторону Усть-Маны.</span></li>
+              <li><b>Мост через Ману</b><span>Сразу после моста — налево, вверх по реке, 9&nbsp;км по асфальту.</span></li>
+              <li><b>Грунтовка, 4&nbsp;км</b><span>Проходима для любой машины. Зимой чистим трактором каждое утро.</span></li>
+              <li><b>Изгиб</b><span>Парковка у ресепшена, до домиков довезём на гольф-каре или на снегоходе.</span></li>
+            </ol>
+            <p class="route__coords">Координаты для навигатора: <button type="button" class="copy" data-copy="55.8378, 92.5520">55.8378, 92.5520</button></p>
+          </div>
+          <div class="way-panel" data-panel="transfer">
+            <ol class="steps">
+              <li><b>Встретим</b><span>В Красноярске по адресу или в аэропорту Емельяново — на полноприводном внедорожнике.</span></li>
+              <li><b>50&nbsp;минут в пути</b><span>До 4&nbsp;гостей с багажом, детские кресла по запросу.</span></li>
+              <li><b>2&nbsp;500&nbsp;₽ в одну сторону</b><span>Добавьте трансфер в бронь, и мы согласуем время по телефону.</span></li>
+            </ol>
+          </div>
+          <div class="way-panel" data-panel="water">
+            <ol class="steps">
+              <li><b>Сплав по Мане</b><span>С мая по сентябрь можно прийти к нам по реке с любого популярного маршрута.</span></li>
+              <li><b>Наш причал</b><span>Ищите белые купола на правом берегу после скалы. Встретим, поможем вытащить лодку.</span></li>
+              <li><b>Лодку сохраним</b><span>Хранение снаряжения и заброска машины к финишу — по договорённости.</span></li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="route__map reveal">
+          <svg class="route__svg" viewBox="0 0 400 520" aria-label="Схема маршрута от Красноярска до глэмпинга">
+            <path class="route__river" d="M380 40 C 300 90, 330 170, 250 200 S 120 210, 150 300 S 300 360, 240 440 S 90 470, 30 500" />
+            <path class="route__road" id="routeRoad" d="M60 40 C 110 90, 90 150, 170 175 S 260 230, 215 300 S 150 360, 205 400" />
+            <g class="route__pin route__pin--start"><circle cx="60" cy="40" r="6"/><text x="74" y="45">Красноярск</text></g>
+            <g class="route__pin"><circle cx="170" cy="175" r="4"/><text x="184" y="170">мост через Ману</text></g>
+            <g class="route__pin"><circle cx="215" cy="300" r="4"/><text x="232" y="298">грунтовка 4 км</text></g>
+            <g class="route__pin route__pin--end"><circle cx="205" cy="400" r="9"/><circle class="route__pulse" cx="205" cy="400" r="9"/><text x="224" y="405">Изгиб</text></g>
+          </svg>
+          <div class="route__meta">
+            <div><strong>42&nbsp;км</strong><span>от центра Красноярска</span></div>
+            <div><strong>50&nbsp;мин</strong><span>на машине</span></div>
+            <div><strong>70&nbsp;км</strong><span>от аэропорта</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ REVIEWS ============ -->
+    <section class="reviews section" id="reviews" data-sky="dusk">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="kicker reveal">Отзывы</p>
+            <h2 class="section__title reveal">Что увозят с&nbsp;собой</h2>
+          </div>
+          <div class="rating reveal">
+            <strong>4,96</strong>
+            <span class="rating__stars" aria-hidden="true">★★★★★</span>
+            <span>218 отзывов на Яндекс Картах</span>
+          </div>
+        </div>
+      </div>
+      <div class="reel" id="reel" tabindex="0" aria-label="Отзывы гостей, листайте горизонтально">
+        <div class="reel__track" id="reelTrack"></div>
+      </div>
+      <div class="wrap reel__controls">
+        <button type="button" class="cal__arrow" id="reelPrev" aria-label="Предыдущий отзыв"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="reel__bar"><span id="reelBar"></span></div>
+        <button type="button" class="cal__arrow" id="reelNext" aria-label="Следующий отзыв"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section class="faq section" id="faq" data-sky="day">
+      <div class="wrap faq__inner">
+        <div class="faq__head">
+          <p class="kicker reveal">Вопросы</p>
+          <h2 class="section__title reveal">Коротко о&nbsp;важном</h2>
+          <p class="section__lead reveal">Не нашли ответ? Напишите в Telegram — отвечаем с 8:00 до 23:00 по Красноярску.</p>
+        </div>
+        <div class="faq__list" id="faqList"></div>
+      </div>
+    </section>
+
+    <!-- ============ CONTACTS ============ -->
+    <section class="contacts section" id="contacts" data-sky="night">
+      <div class="wrap">
+        <h2 class="contacts__big reveal">Изгиб ждёт</h2>
+        <div class="contacts__grid">
+          <div class="contacts__col reveal">
+            <span class="contacts__label">Телефон</span>
+            <a href="tel:+73912770770">+7 (391) 277-07-70</a>
+            <span class="contacts__label">Мессенджеры</span>
+            <a href="https://t.me/" target="_blank" rel="noopener">Telegram @izgib_mana</a>
+            <a href="https://wa.me/" target="_blank" rel="noopener">WhatsApp</a>
+            <span class="contacts__label">Почта</span>
+            <a href="mailto:hello@izgib-mana.ru">hello@izgib-mana.ru</a>
+          </div>
+          <div class="contacts__col reveal">
+            <span class="contacts__label">Адрес</span>
+            <p>Красноярский край, 13&nbsp;км от Усть-Маны,<br>правый берег реки Мана у&nbsp;Манской петли</p>
+            <span class="contacts__label">Ресепшен</span>
+            <p>Ежедневно 8:00–23:00<br>Заезд с 15:00, выезд до 12:00</p>
+            <p class="contacts__demo">Название, адрес и контакты в демо вымышленные</p>
+          </div>
+          <div class="contacts__map reveal">
+            <iframe src="https://yandex.ru/map-widget/v1/?ll=92.5520%2C55.8378&z=11&pt=92.5520%2C55.8378%2Cpm2gnl&l=map" title="Карта: глэмпинг Изгиб на реке Мана" loading="lazy" allowfullscreen></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" data-sky="night">
+    <div class="wrap footer__inner">
+      <span>© 2026 Изгиб · глэмпинг на реке Мана</span>
+      <span>Демо-сайт для портфолио · фото сгенерированы нейросетью</span>
+    </div>
+  </footer>
+
+  <!-- ============ HOUSE MODAL ============ -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="mName">
+      <button class="modal__close" data-close aria-label="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+      <div class="modal__media">
+        <img id="mPhotoA" alt="">
+        <img id="mPhotoB" alt="">
+        <div class="modal__views">
+          <button class="is-active" data-view="out">Снаружи</button>
+          <button data-view="in">Внутри</button>
+        </div>
+      </div>
+      <div class="modal__info">
+        <p class="kicker" id="mType"></p>
+        <h3 class="modal__name" id="mName"></h3>
+        <p class="modal__tagline" id="mTagline"></p>
+        <ul class="modal__specs" id="mSpecs"></ul>
+        <p class="modal__about" id="mAbout"></p>
+        <ul class="modal__features" id="mFeatures"></ul>
+        <div class="modal__prices">
+          <p class="modal__subtitle">Цена за ночь по сезонам</p>
+          <div class="seasonal" id="mPrices"></div>
+          <p class="modal__small">В пятницу и субботу +20%, в новогодние праздники ×1,5.</p>
+        </div>
+        <div class="modal__actions">
+          <button class="btn btn--aurora" id="mBook">Выбрать даты</button>
+          <button class="btn btn--ghost" data-close>Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js?v=2"></script>
+</body>
+</html>
