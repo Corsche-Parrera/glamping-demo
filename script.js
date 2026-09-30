@@ -231,6 +231,24 @@ const SKY_LOOK = {
   day: { stars: 0, a: [255, 255, 255, 0.65], b: [168, 214, 226, 0.4] },
   dusk: { stars: 0.45, a: [233, 138, 104, 0.34], b: [128, 92, 176, 0.34] },
 };
+const SKY_TONE = { night: [6, 13, 19], dawn: [235, 226, 233], day: [228, 238, 238], dusk: [22, 31, 51] };
+// [тёмное небо, светлое небо]: текст и акценты плавно перетекают вместе с фоном
+const INK_VARS = {
+  "--fg": [[238, 243, 241, 1], [11, 27, 33, 1]],
+  "--fg-2": [[238, 243, 241, 0.7], [11, 27, 33, 0.7]],
+  "--fg-3": [[238, 243, 241, 0.46], [11, 27, 33, 0.5]],
+  "--line": [[238, 243, 241, 0.14], [11, 27, 33, 0.14]],
+  "--surface": [[255, 255, 255, 0.05], [255, 255, 255, 0.5]],
+  "--surface-2": [[255, 255, 255, 0.09], [255, 255, 255, 0.78]],
+  "--cta-bg": [[166, 242, 201, 1], [11, 27, 33, 1]],
+  "--cta-fg": [[7, 20, 26, 1], [201, 247, 222, 1]],
+  "--fg-inv": [[7, 20, 26, 1], [238, 243, 241, 1]],
+  "--mark": [[166, 242, 201, 1], [11, 27, 33, 1]],
+  "--accent": [[166, 242, 201, 1], [46, 140, 99, 1]],
+};
+const rgba = (c) => `rgba(${Math.round(c[0])}, ${Math.round(c[1])}, ${Math.round(c[2])}, ${(c[3] ?? 1).toFixed(3)})`;
+let inkLast = -1;
+let toneLast = "";
 const skyEl = $(".sky");
 const skyLayers = SKY_ORDER.map((s) => $(`.sky__layer--${s}`));
 const skyOrbs = $$(".sky__orb");
@@ -285,6 +303,21 @@ function updateSky() {
 
   const dominant = SKY_ORDER.reduce((best, s) => (w[s] > w[best] ? s : best), "night");
   if (document.body.dataset.sky !== dominant) document.body.dataset.sky = dominant;
+
+  const bodyStyle = document.body.style;
+  const tone = [0, 0, 0];
+  SKY_ORDER.forEach((s) => SKY_TONE[s].forEach((v, j) => { tone[j] += v * Math.max(0, w[s]); }));
+  const toneStr = rgba(tone);
+  if (toneStr !== toneLast) { bodyStyle.setProperty("--tone", toneStr); toneLast = toneStr; }
+
+  const light = clamp(w.dawn + w.day, 0, 1);
+  const ink = Math.round(smoothstep(0.2, 0.8, light) * 1000) / 1000;
+  if (ink !== inkLast) {
+    inkLast = ink;
+    Object.entries(INK_VARS).forEach(([name, [dark, lite]]) => {
+      bodyStyle.setProperty(name, rgba(dark.map((v, j) => lerp(v, lite[j], ink))));
+    });
+  }
 
   if (reduceMotion) return;
   const docH = document.documentElement.scrollHeight - vh || 1;
