@@ -909,10 +909,10 @@ body[data-sky="night"] .qa.is-open .qa__icon, body[data-sky="dusk"] .qa.is-open 
   .ritual { scroll-snap-align: center; padding: 22px; }
   .ritual:nth-child(2) { transform: none; }
   .extras-list { margin-top: 56px; }
-  .extra-row { grid-template-columns: 1fr auto; gap: 6px 16px; }
-  .extra-row p { grid-column: 1 / -1; grid-row: 2; }
-  .extra-row__price { grid-column: 1; grid-row: 3; }
-  .extra-row .add { grid-column: 2; grid-row: 1 / 4; }
+  .extra-row { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; }
+  .extra-row h4, .extra-row p { grid-column: 1 / -1; }
+  .extra-row__price { grid-column: 1; grid-row: 3; text-align: left; margin-top: 6px; white-space: normal; }
+  .extra-row .add { grid-column: 2; grid-row: 3; margin-top: 6px; }
 
   .cal { padding: 18px 12px; }
   .cal__nav { top: 14px; left: 12px; right: 12px; }
