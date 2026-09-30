@@ -30,7 +30,7 @@
   --radius-sm: 12px;
   --wrap: 1320px;
   --gutter: clamp(20px, 4vw, 56px);
-  --section: clamp(96px, 12vw, 180px);
+  --section: clamp(116px, 13vw, 200px);
 
   --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
   --ease-in: cubic-bezier(0.4, 0.0, 1, 1);
@@ -39,10 +39,11 @@
   --fast: 140ms;
   --base: 220ms;
   --slow: 340ms;
-  --sky-time: 1000ms;
 }
 
-body[data-sky="night"], body[data-sky="dusk"] {
+[data-sky] { color: var(--fg); }
+
+[data-sky="night"], [data-sky="dusk"] {
   --fg: #eef3f1;
   --fg-2: rgba(238, 243, 241, 0.7);
   --fg-3: rgba(238, 243, 241, 0.46);
@@ -56,11 +57,7 @@ body[data-sky="night"], body[data-sky="dusk"] {
   --accent: #a6f2c9;
   --tone: #060d13;
 }
-body[data-sky="dusk"] { --tone: #161f33; }
-body[data-sky="dawn"] { --tone: #ebe2e9; }
-body[data-sky="day"] { --tone: #e4eeee; }
-
-body[data-sky="day"], body[data-sky="dawn"] {
+[data-sky="day"], [data-sky="dawn"] {
   --fg: #0b1b21;
   --fg-2: rgba(11, 27, 33, 0.7);
   --fg-3: rgba(11, 27, 33, 0.5);
@@ -122,29 +119,12 @@ body.is-loaded .curtain { clip-path: inset(0 0 100% 0); visibility: hidden; }
 /* ---------- Sky ---------- */
 
 .sky { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
-.sky__layer { position: absolute; inset: -14vh 0; opacity: 0; will-change: opacity, transform; }
-.sky__layer--night { opacity: 1; }
+.sky__layer { position: absolute; inset: -14vh 0; will-change: transform; }
 .sky__layer--night {
   background:
     radial-gradient(120% 70% at 78% -10%, rgba(40, 88, 120, 0.45), transparent 60%),
     radial-gradient(90% 60% at 0% 110%, rgba(26, 70, 72, 0.35), transparent 60%),
     linear-gradient(180deg, #03070c 0%, #081520 55%, #0c1f27 100%);
-}
-.sky__layer--dawn {
-  background:
-    radial-gradient(90% 60% at 85% 0%, rgba(255, 214, 196, 0.8), transparent 60%),
-    linear-gradient(180deg, #efdfe0 0%, #e3e2ec 45%, #dae6ea 100%);
-}
-.sky__layer--day {
-  background:
-    radial-gradient(100% 60% at 20% 0%, rgba(255, 255, 255, 0.9), transparent 60%),
-    linear-gradient(180deg, #d3e4ea 0%, #e6eeee 50%, #eff3f0 100%);
-}
-.sky__layer--dusk {
-  background:
-    radial-gradient(90% 55% at 50% 118%, rgba(233, 138, 104, 0.55), transparent 65%),
-    radial-gradient(70% 50% at 100% 100%, rgba(150, 84, 110, 0.4), transparent 60%),
-    linear-gradient(180deg, #0a1826 0%, #1c2640 50%, #3a3150 100%);
 }
 .sky__orb {
   position: absolute; width: 90vmax; height: 90vmax; border-radius: 50%;
@@ -155,6 +135,37 @@ body.is-loaded .curtain { clip-path: inset(0 0 100% 0); visibility: hidden; }
 .sky__orb--b { background: radial-gradient(closest-side, var(--orb-b, rgba(166, 242, 201, 0.1)), transparent); }
 
 .sky__stars { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.backdrop { position: absolute; top: 0; left: 0; right: 0; height: 0; z-index: -1; pointer-events: none; }
+.sky-panel { position: absolute; left: 0; right: 0; overflow: hidden; }
+.sky-panel--dawn {
+  z-index: 2;
+  --glow: rgba(255, 196, 178, 0.6);
+  background:
+    radial-gradient(900px 520px at 88% 0%, rgba(255, 214, 196, 0.75), transparent 70%),
+    linear-gradient(180deg, #efdfe0 0%, #e6e1eb 45%, #dde6ea 100%);
+}
+.sky-panel--day {
+  z-index: 2;
+  --glow: rgba(255, 255, 255, 0.8);
+  background:
+    radial-gradient(1000px 600px at 12% 0%, rgba(255, 255, 255, 0.85), transparent 70%),
+    linear-gradient(180deg, #d6e6eb 0%, #e5eded 50%, #ecf1ee 100%);
+}
+.sky-panel--dusk {
+  z-index: 1;
+  --glow: rgba(233, 138, 104, 0.26);
+  background:
+    radial-gradient(1200px 640px at 50% 104%, rgba(233, 138, 104, 0.5), transparent 70%),
+    radial-gradient(800px 520px at 100% 90%, rgba(150, 84, 110, 0.38), transparent 70%),
+    linear-gradient(180deg, rgba(12, 26, 40, 0.5) 0%, rgba(28, 38, 64, 0.88) 45%, #34304d 100%);
+}
+.sky-panel__glow {
+  position: absolute; left: 50%; top: 0;
+  width: 130vmax; height: 90vmax; margin: -45vmax 0 0 -65vmax; border-radius: 50%;
+  background: radial-gradient(closest-side, var(--glow), transparent);
+  will-change: transform;
+}
 
 .sky__grain {
   position: absolute; inset: -50%;
@@ -288,19 +299,25 @@ body.is-loaded .curtain { clip-path: inset(0 0 100% 0); visibility: hidden; }
 .hero__shade {
   position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(4, 9, 14, 0.55) 0%, rgba(4, 9, 14, 0) 24%),
-    linear-gradient(0deg, rgba(4, 9, 14, 0.92) 0%, rgba(4, 9, 14, 0.45) 34%, rgba(4, 9, 14, 0) 62%),
+    linear-gradient(180deg, rgba(4, 9, 14, 0.55) 0%, rgba(4, 9, 14, 0) 22%),
+    linear-gradient(0deg, rgba(4, 9, 14, 0.96) 0%, rgba(4, 9, 14, 0.78) 26%, rgba(4, 9, 14, 0.5) 48%, rgba(4, 9, 14, 0.2) 68%, rgba(4, 9, 14, 0) 84%),
     radial-gradient(80% 80% at 50% 50%, transparent 60%, rgba(4, 9, 14, 0.5) 100%);
 }
 
 .hero__content { position: relative; will-change: transform, opacity; }
+.hero__content::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  inset: -12% -18% 10% -30%;
+  background: radial-gradient(closest-side, rgba(4, 9, 14, 0.5), rgba(4, 9, 14, 0.22) 60%, transparent);
+}
+.hero__place, .hero__lead, .season { text-shadow: 0 1px 14px rgba(4, 9, 14, 0.6); }
 .hero__place { margin: 0 0 20px; font-size: var(--text-xs); letter-spacing: 0.22em; text-transform: uppercase; color: rgba(238, 243, 241, 0.75); }
 
 .hero__title {
   margin: 0;
   font-family: var(--font-display); font-weight: 400;
   font-size: var(--text-hero); line-height: 0.94; letter-spacing: -0.025em;
-  text-shadow: 0 4px 60px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 2px 28px rgba(4, 9, 14, 0.5), 0 1px 3px rgba(4, 9, 14, 0.25);
 }
 .hero__line { display: block; overflow: hidden; padding-bottom: 0.06em; }
 .hero__line > span { display: inline-block; transform: translateY(110%); transition: transform 1400ms var(--ease-cine); }
@@ -369,12 +386,7 @@ body.is-loaded .reveal-hero { opacity: 1; transform: none; }
 
 /* ---------- Intro ---------- */
 
-.intro::before {
-  content: ""; position: absolute; left: 0; right: 0; top: 0; height: var(--section); pointer-events: none;
-  background: linear-gradient(180deg,
-    rgba(4, 9, 14, 0.92) 0%, rgba(4, 9, 14, 0.74) 16%, rgba(4, 9, 14, 0.5) 34%,
-    rgba(4, 9, 14, 0.28) 54%, rgba(4, 9, 14, 0.11) 74%, rgba(4, 9, 14, 0.03) 88%, rgba(4, 9, 14, 0) 100%);
-}
+.intro { padding-top: calc(var(--section) + 14vh); }
 
 .intro__statement {
   margin: 0;
@@ -894,10 +906,11 @@ body.no-scroll .to-top { opacity: 0; visibility: hidden; }
   .seasons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
   .season {
     min-width: 0; padding: 9px 14px 12px; border-radius: 12px;
-    background: rgba(7, 20, 26, 0.32); border: 1px solid rgba(238, 243, 241, 0.12);
-    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    color: rgba(238, 243, 241, 0.78);
+    background: rgba(7, 20, 26, 0.56); border: 1px solid rgba(238, 243, 241, 0.12);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
   }
-  .season.is-active { background: rgba(7, 20, 26, 0.55); border-color: rgba(166, 242, 201, 0.45); }
+  .season.is-active { background: rgba(7, 20, 26, 0.72); border-color: rgba(166, 242, 201, 0.5); }
   .season::after { left: 14px; right: 14px; bottom: 5px; }
   .season__name { font-size: 1.08rem; }
   .season__note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

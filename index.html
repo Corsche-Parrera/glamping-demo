@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="images/hero-autumn.jpg">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body data-sky="night" data-season="autumn">
 
@@ -23,14 +23,12 @@
 
   <div class="sky" aria-hidden="true">
     <div class="sky__layer sky__layer--night"></div>
-    <div class="sky__layer sky__layer--dawn"></div>
-    <div class="sky__layer sky__layer--day"></div>
-    <div class="sky__layer sky__layer--dusk"></div>
     <div class="sky__orb sky__orb--a"></div>
     <div class="sky__orb sky__orb--b"></div>
     <canvas class="sky__stars" id="stars"></canvas>
     <div class="sky__grain"></div>
   </div>
+  <div class="backdrop" id="backdrop" aria-hidden="true"></div>
 
   <header class="header" id="header">
     <div class="wrap header__inner">
@@ -435,6 +433,6 @@
     <svg class="to-top__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" /></svg>
   </button>
 
-  <script src="script.js?v=5"></script>
+  <script src="script.js?v=6"></script>
 </body>
 </html>

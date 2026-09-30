@@ -223,113 +223,91 @@ const navObserver = new IntersectionObserver((entries) => {
 }, { rootMargin: "-50% 0px -50% 0px" });
 skySections.forEach((s) => navObserver.observe(s));
 
-// Цвета неба смешиваются по мере прокрутки: у каждой границы секций есть зона перехода высотой больше экрана
-const SKY_ORDER = ["night", "dawn", "day", "dusk"];
-const SKY_LOOK = {
-  night: { stars: 1, a: [64, 140, 160, 0.3], b: [166, 242, 201, 0.1] },
-  dawn: { stars: 0, a: [255, 186, 168, 0.5], b: [196, 186, 240, 0.42] },
-  day: { stars: 0, a: [255, 255, 255, 0.65], b: [168, 214, 226, 0.4] },
-  dusk: { stars: 0.45, a: [233, 138, 104, 0.34], b: [128, 92, 176, 0.34] },
-};
-const SKY_TONE = { night: [6, 13, 19], dawn: [235, 226, 233], day: [228, 238, 238], dusk: [22, 31, 51] };
-// [тёмное небо, светлое небо]: текст и акценты плавно перетекают вместе с фоном
-const INK_VARS = {
-  "--fg": [[238, 243, 241, 1], [11, 27, 33, 1]],
-  "--fg-2": [[238, 243, 241, 0.7], [11, 27, 33, 0.7]],
-  "--fg-3": [[238, 243, 241, 0.46], [11, 27, 33, 0.5]],
-  "--line": [[238, 243, 241, 0.14], [11, 27, 33, 0.14]],
-  "--surface": [[255, 255, 255, 0.05], [255, 255, 255, 0.5]],
-  "--surface-2": [[255, 255, 255, 0.09], [255, 255, 255, 0.78]],
-  "--cta-bg": [[166, 242, 201, 1], [11, 27, 33, 1]],
-  "--cta-fg": [[7, 20, 26, 1], [201, 247, 222, 1]],
-  "--fg-inv": [[7, 20, 26, 1], [238, 243, 241, 1]],
-  "--mark": [[166, 242, 201, 1], [11, 27, 33, 1]],
-  "--accent": [[166, 242, 201, 1], [46, 140, 99, 1]],
-};
-const rgba = (c) => `rgba(${Math.round(c[0])}, ${Math.round(c[1])}, ${Math.round(c[2])}, ${(c[3] ?? 1).toFixed(3)})`;
-let inkLast = -1;
-let toneLast = "";
-const skyEl = $(".sky");
-const skyLayers = SKY_ORDER.map((s) => $(`.sky__layer--${s}`));
+// Светлые и вечерние секции получают собственную подложку поверх ночного неба.
+// Растушёвка идёт только по отступам секций, поэтому текст всегда лежит на «своём» фоне.
+const isLight = (s) => s === "dawn" || s === "day";
+const backdrop = $("#backdrop");
+const skyNight = $(".sky__layer--night");
 const skyOrbs = $$(".sky__orb");
-let skyBounds = [];
+let skyPanels = [];
 let skySmoothY = window.scrollY;
 let skyLastY = -1;
-let starsAlpha = 1;
+let backdropKey = "";
 
-function measureSky() {
-  const y = window.scrollY;
-  skyBounds = skySections.map((s) => ({ top: s.getBoundingClientRect().top + y, sky: s.dataset.sky }));
-  skyLastY = -1;
+function fadeStops(h, top, bottom) {
+  const curve = [[0, 0], [0.2, 0.1], [0.4, 0.35], [0.6, 0.65], [0.8, 0.9], [1, 1]];
+  const stops = [];
+  if (top > 0) curve.forEach(([k, a]) => stops.push(`rgba(0,0,0,${a}) ${(k * top).toFixed(1)}px`));
+  else stops.push("#000 0px");
+  if (bottom > 0) [...curve].reverse().forEach(([k, a]) => stops.push(`rgba(0,0,0,${a}) ${(h - k * bottom).toFixed(1)}px`));
+  else stops.push(`#000 ${h}px`);
+  return `linear-gradient(to bottom, ${stops.join(", ")})`;
 }
 
-const smoothstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+function buildBackdrop() {
+  const y0 = window.scrollY;
+  const cap = window.innerHeight * 0.45;
+  const secs = skySections.map((el) => {
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return { sky: el.dataset.sky, top: r.top + y0, bottom: r.bottom + y0, pt: parseFloat(cs.paddingTop), pb: parseFloat(cs.paddingBottom) };
+  });
+  const key = secs.map((s) => `${Math.round(s.top)}:${Math.round(s.bottom)}`).join("|") + `|${cap | 0}`;
+  if (key === backdropKey) return;
+  backdropKey = key;
+
+  const html = [];
+  skyPanels = [];
+  secs.forEach((s, i) => {
+    if (s.sky === "night") return;
+    const prev = secs[i - 1], next = secs[i + 1];
+    let extTop = 0, extBottom = 0, fadeTop = 0, fadeBottom = 0;
+    if (prev) {
+      const out = Math.min(cap, prev.pb * 0.95), inside = Math.min(cap, s.pt * 0.95);
+      extTop = out;
+      if (isLight(s.sky) || prev.sky === "night") fadeTop = out + inside;
+    }
+    if (next) {
+      const inside = Math.min(cap, s.pb * 0.95), out = Math.min(cap, next.pt * 0.95);
+      extBottom = out;
+      if (!isLight(next.sky)) fadeBottom = inside + out;
+    }
+    const top = s.top - extTop;
+    const h = s.bottom - s.top + extTop + extBottom;
+    const mask = fadeStops(h, fadeTop, fadeBottom);
+    skyPanels.push({ top, h });
+    html.push(`<div class="sky-panel sky-panel--${s.sky}" style="top:${top}px;height:${h}px;-webkit-mask-image:${mask};mask-image:${mask}"><i class="sky-panel__glow"></i></div>`);
+  });
+  backdrop.innerHTML = html.join("");
+  skyPanels.forEach((p, i) => { p.glow = backdrop.children[i].firstElementChild; });
+  skyLastY = -1;
+}
 
 function updateSky() {
   const target = window.scrollY;
   skySmoothY = reduceMotion ? target : lerp(skySmoothY, target, 0.12);
   if (Math.abs(skySmoothY - target) < 0.3) skySmoothY = target;
-  if (skySmoothY === skyLastY || !skyBounds.length) return;
+  if (skySmoothY === skyLastY || reduceMotion && skyLastY !== -1) return;
   skyLastY = skySmoothY;
+  if (reduceMotion) return;
 
   const vh = window.innerHeight;
-  const center = skySmoothY + vh / 2;
-  const zone = vh * 1.2;
-  const w = { night: 0, dawn: 0, day: 0, dusk: 0 };
-  w[skyBounds[0].sky] = 1;
-  for (let i = 1; i < skyBounds.length; i++) {
-    const t = smoothstep(-zone / 2, zone / 2, center - skyBounds[i].top);
-    if (!t) break;
-    w[skyBounds[i - 1].sky] -= t;
-    w[skyBounds[i].sky] += t;
-  }
-
-  let acc = 0;
-  SKY_ORDER.forEach((s, i) => {
-    const wi = Math.max(0, w[s]);
-    acc += wi;
-    skyLayers[i].style.opacity = acc > 0 ? (wi / acc).toFixed(4) : "0";
-  });
-
-  const mix = (key) => {
-    const c = [0, 0, 0, 0];
-    SKY_ORDER.forEach((s) => SKY_LOOK[s][key].forEach((v, j) => { c[j] += v * Math.max(0, w[s]); }));
-    return `rgba(${c[0] | 0}, ${c[1] | 0}, ${c[2] | 0}, ${c[3].toFixed(3)})`;
-  };
-  skyEl.style.setProperty("--orb-a", mix("a"));
-  skyEl.style.setProperty("--orb-b", mix("b"));
-  starsAlpha = SKY_ORDER.reduce((sum, s) => sum + SKY_LOOK[s].stars * Math.max(0, w[s]), 0);
-  starsCanvas.style.opacity = starsAlpha.toFixed(3);
-
-  const dominant = SKY_ORDER.reduce((best, s) => (w[s] > w[best] ? s : best), "night");
-  if (document.body.dataset.sky !== dominant) document.body.dataset.sky = dominant;
-
-  const bodyStyle = document.body.style;
-  const tone = [0, 0, 0];
-  SKY_ORDER.forEach((s) => SKY_TONE[s].forEach((v, j) => { tone[j] += v * Math.max(0, w[s]); }));
-  const toneStr = rgba(tone);
-  if (toneStr !== toneLast) { bodyStyle.setProperty("--tone", toneStr); toneLast = toneStr; }
-
-  const light = clamp(w.dawn + w.day, 0, 1);
-  const ink = Math.round(smoothstep(0.2, 0.8, light) * 1000) / 1000;
-  if (ink !== inkLast) {
-    inkLast = ink;
-    Object.entries(INK_VARS).forEach(([name, [dark, lite]]) => {
-      bodyStyle.setProperty(name, rgba(dark.map((v, j) => lerp(v, lite[j], ink))));
-    });
-  }
-
-  if (reduceMotion) return;
   const docH = document.documentElement.scrollHeight - vh || 1;
-  const p = skySmoothY / docH;
-  skyLayers.forEach((l) => { l.style.transform = `translate3d(0, ${(0.5 - p) * 20}vh, 0)`; });
+  skyNight.style.transform = `translate3d(0, ${(0.5 - skySmoothY / docH) * 20}vh, 0)`;
   const k = skySmoothY / vh;
   skyOrbs[0].style.transform = `translate3d(${Math.sin(k * 0.55) * 30}vw, ${Math.cos(k * 0.4) * 32 - 12}vh, 0)`;
   skyOrbs[1].style.transform = `translate3d(${Math.cos(k * 0.45 + 2) * 34}vw, ${Math.sin(k * 0.6 + 1) * 30 + 14}vh, 0)`;
+
+  const center = skySmoothY + vh / 2;
+  skyPanels.forEach((p) => {
+    if (center < p.top - vh || center > p.top + p.h + vh) return;
+    const rel = center - p.top;
+    p.glow.style.transform = `translate3d(${Math.sin(rel / 900) * 12}vw, ${rel * 0.55}px, 0)`;
+  });
 }
 
-new ResizeObserver(measureSky).observe(document.body);
-window.addEventListener("load", measureSky);
+new ResizeObserver(buildBackdrop).observe(document.body);
+window.addEventListener("load", buildBackdrop);
 
 /* ================= Кнопка «Наверх» ================= */
 
@@ -388,7 +366,6 @@ function sizeStars() {
 }
 
 function drawStars(t) {
-  if (starsAlpha < 0.01) return;
   const w = window.innerWidth, h = window.innerHeight;
   sctx.clearRect(0, 0, w, h);
   const sy = window.scrollY;
@@ -638,7 +615,7 @@ window.addEventListener("scroll", () => {
 let resizeTimer;
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { sizeStars(); sizeParticles(); setParticles(particleType); renderCalendar(); measureSky(); }, 150);
+  resizeTimer = setTimeout(() => { sizeStars(); sizeParticles(); setParticles(particleType); renderCalendar(); buildBackdrop(); }, 150);
 });
 
 /* ================= Солнце над Маной ================= */
@@ -1283,6 +1260,6 @@ initRoad();
 updateReelBar();
 onHeaderScroll();
 updateStatement();
-measureSky();
+buildBackdrop();
 updateToTop();
 requestAnimationFrame(loop);
